@@ -56,17 +56,6 @@ open class PropertiesCollection(private val properties: Map<Key<*>, Any> = empty
             this@Builder.data.putAll(this.data)
         }
 
-        // a class for extending properties, see jvm below
-        interface BuilderExtension<T: Builder> {
-            fun get(): T
-        }
-
-        // include another builder extension
-        operator fun <T: Builder> BuilderExtension<T>.invoke(body: T.() -> Unit) {
-            val builder = this.get().apply(body)
-            builder.data.putAll(this@Builder.data)
-        }
-
         // direct manipulation - public - for usage in inline dsl methods and for extending dsl
         operator fun <T, V : Any> set(key: PropertiesCollection.Key<T>, value: V) {
             data[key] = value
@@ -136,14 +125,12 @@ interface JvmSpecificPropertiesKeys
 
 class JvmSpecificPropertiesBuilder : JvmSpecificPropertiesKeys, PropertiesCollection.Builder() {
 
-    companion object : PropertiesCollection.Builder.BuilderExtension<JvmSpecificPropertiesBuilder>, JvmSpecificPropertiesKeys {
-        override fun get() = JvmSpecificPropertiesBuilder()
-    }
+    companion object : JvmSpecificPropertiesKeys
 }
 
 val JvmSpecificPropertiesKeys.javaHome by PropertiesCollection.key<String>()
 
-val ScriptDefinitionKeys.jvm get() = JvmSpecificPropertiesBuilder
+val ScriptDefinitionKeys.jvm get() = JvmSpecificPropertiesBuilder()
 
 // -------------------------------------------------------------------------------
 // evaluation environment properties - another usage of the builder base class
